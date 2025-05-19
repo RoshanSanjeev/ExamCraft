@@ -7,54 +7,26 @@ adaptive questions, providing explanations, and creating personalized lesson pla
 """
 
 import os
-import sys
 import json
 import asyncio
-import argparse
 from typing import Dict, List, Any, Tuple, Optional
 from dataclasses import dataclass
 
-# Try different Atropos import patterns
+# Atropos imports
 try:
-    from atroposlib.envs import BaseLanguageEnv
-    from atroposlib.api import BaseEnvConfig, APIServerConfig
+    from atroposlib import BaseLanguageEnv, BaseEnvConfig, APIServerConfig
     from atroposlib.utils import parse_args_and_command
-    ATROPOS_AVAILABLE = True
-    print("✅ Successfully imported Atropos classes")
-except ImportError as e1:
+except ImportError:
+    # Try alternative import paths
     try:
-        from atroposlib.envs.base import BaseLanguageEnv
-        from atroposlib.api.config import BaseEnvConfig, APIServerConfig
+        from atroposlib.envs import BaseLanguageEnv
+        from atroposlib.configs import BaseEnvConfig, APIServerConfig
         from atroposlib.utils import parse_args_and_command
-        ATROPOS_AVAILABLE = True
-        print("✅ Successfully imported Atropos classes (alternative path)")
-    except ImportError as e2:
-        try:
-            # Check what's actually available
-            import atroposlib.envs
-            import atroposlib.api
-            print("Available in atroposlib.envs:", dir(atroposlib.envs))
-            print("Available in atroposlib.api:", dir(atroposlib.api))
-            raise ImportError("Could not find correct imports")
-        except ImportError as e3:
-            print(f"Warning: Could not import Atropos classes. Errors: {e1}, {e2}, {e3}")
-            print("Running in standalone mode...")
-            ATROPOS_AVAILABLE = False
-            
-            # Create mock classes for testing
-            class BaseLanguageEnv:
-                def __init__(self, config):
-                    self.config = config
-                    
-            class BaseEnvConfig:
-                def __init__(self, **kwargs):
-                    for k, v in kwargs.items():
-                        setattr(self, k, v)
-                        
-            class APIServerConfig:
-                def __init__(self, **kwargs):
-                    for k, v in kwargs.items():
-                        setattr(self, k, v)
+    except ImportError:
+        # Try another alternative
+        from atroposlib.language_env import BaseLanguageEnv
+        from atroposlib.env_config import BaseEnvConfig, APIServerConfig
+        from atroposlib.cli import parse_args_and_command
 
 
 @dataclass
@@ -548,79 +520,6 @@ Please select your next teaching action based on this student's progress."""
             "final_proficiencies": dict(self.student_metrics["topic_accuracies"])
         }
     
-    def run_standalone_demo(self, output_file: str = "demo_output.jsonl"):
-        """Run a standalone demo without full Atropos integration."""
-        print("🎓 ExamCraft: Standalone Demo Mode")
-        print("Simulating teacher-student interactions...")
-        
-        # Reset environment
-        self.reset_metrics()
-        
-        # Simulate a teaching session
-        outputs = []
-        
-        for episode in range(3):  # Run 3 episodes
-            print(f"\n--- Episode {episode + 1} ---")
-            episode_data = {
-                "episode": episode + 1,
-                "initial_state": dict(self.student_metrics),
-                "interactions": []
-            }
-            
-            # Simulate questions
-            for question_num in range(self.config.max_questions_per_episode):
-                # Create a mock teacher response (since we don't have an LLM)
-                weakest_topic = min(self.student_metrics["topic_accuracies"].items(), 
-                                  key=lambda x: x[1])[0]
-                
-                mock_response = {
-                    "action_type": "QUESTION",
-                    "topic": weakest_topic,
-                    "difficulty": "medium",
-                    "content": {
-                        "question": f"Sample question about {weakest_topic}",
-                        "options": {
-                            "A": "Option A",
-                            "B": "Option B",
-                            "C": "Option C",
-                            "D": "Option D"
-                        },
-                        "correct_answer": "B",
-                        "explanation": f"This is a detailed explanation about {weakest_topic}.",
-                        "learning_objective": f"Understand key concepts in {weakest_topic}"
-                    }
-                }
-                
-                # Process the mock response
-                try:
-                    result = asyncio.run(self.step(json.dumps(mock_response)))
-                    next_prompt, info = result
-                    episode_data["interactions"].append({
-                        "question_num": question_num + 1,
-                        "teacher_action": mock_response,
-                        "result": info
-                    })
-                    print(f"  Q{question_num + 1}: {info['info'].get('topic')} - {'✓' if info['info'].get('was_correct') else '✗'} (Score: {info['score']:.2f})")
-                except Exception as e:
-                    print(f"  Error processing question {question_num + 1}: {e}")
-                    break
-                
-                if info.get("episode_done", False):
-                    break
-            
-            episode_data["final_state"] = dict(self.student_metrics)
-            outputs.append(episode_data)
-        
-        # Save outputs
-        with open(output_file, 'w') as f:
-            for output in outputs:
-                f.write(json.dumps(output) + '\n')
-        
-        print(f"\n✅ Demo completed! Results saved to {output_file}")
-        print(f"Final student proficiencies:")
-        for topic, prof in self.student_metrics["topic_accuracies"].items():
-            print(f"  {topic}: {prof:.1%}")
-    
     @classmethod
     def config_init(cls) -> Tuple[ExamCraftConfig, List[APIServerConfig]]:
         """Initialize configuration for ExamCraft environment."""
@@ -655,26 +554,7 @@ Please select your next teaching action based on this student's progress."""
 
 def main():
     """Main entry point for ExamCraft environment."""
-    parser = argparse.ArgumentParser(description="ExamCraft: Adaptive LLM Teacher Training Environment")
-    parser.add_argument('command', choices=['process', 'serve', 'demo'], 
-                       help='Command to run (demo for standalone mode)')
-    parser.add_argument('--env.data_path_to_save_groups', type=str, default='demo_output.jsonl',
-                       help='Path to save demo output')
-    
-    args = parser.parse_args()
-    
-    if args.command == 'demo':
-        # Run standalone demo
-        config = ExamCraftConfig()
-        env = ExamCraftEnv(config)
-        output_file = getattr(args, 'env.data_path_to_save_groups', 'demo_output.jsonl')
-        env.run_standalone_demo(output_file)
-    elif ATROPOS_AVAILABLE:
-        # Run with Atropos
-        parse_args_and_command(ExamCraftEnv)
-    else:
-        print("Atropos not available. Use 'python examcraft_server.py demo' for standalone mode.")
-        sys.exit(1)
+    parse_args_and_command(ExamCraftEnv)
 
 
 if __name__ == "__main__":
