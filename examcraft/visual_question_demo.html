@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamCraft: Interactive AI Teacher Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .mode-selector {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .mode-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .mode-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .mode-btn.active:hover {
+            background: #45a049;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 70vh;
+        }
+
+        /* Teacher Panel */
+        .teacher-panel {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 3px solid #e0e0e0;
+        }
+
+        .teacher-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .teacher-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .teacher-info h2 {
+            color: #2196F3;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .teacher-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Student Panel */
+        .student-panel {
+            flex: 1;
+            background: #fafafa;
+            padding: 30px;
+        }
+
+        .student-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .student-info h2 {
+            color: #FF9800;
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .student-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .progress-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .progress-item {
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease;
+        }
+
+        .teacher-message {
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .student-message {
+            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-header {
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .message-content {
+            line-height: 1.4;
+        }
+
+        /* Interactive Input */
+        .student-input {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            margin-top: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .student-answer-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .student-answer-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Question Options */
+        .question-options {
+            margin: 15px 0;
+        }
+
+        .option {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: #e8f4f8;
+            border-color: #2196F3;
+        }
+
+        .option.selected {
+            background: #e3f2fd;
+            border-color: #2196F3;
+            color: #1976D2;
+        }
+
+        .option.correct {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+
+        .option.incorrect {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* AI Agent Knowledge Display */
+        .ai-knowledge {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .knowledge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .knowledge-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .knowledge-item.learned {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+
+        .knowledge-item.learning {
+            background: #fff3e0;
+            border-color: #FF9800;
+            color: #F57C00;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .teacher-panel, .student-panel {
+                border-right: none;
+                border-bottom: 3px solid #e0e0e0;
+            }
+
+            .chat-section {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 ExamCraft</h1>
+            <p>Interactive AI Teacher Training Environment</p>
+        </div>
+
+        <div class="mode-selector">
+            <h3>Choose Learning Mode:</h3>
+            <div class="mode-buttons">
+                <div class="mode-btn active" data-mode="human">👤 I'm the Student</div>
+                <div class="mode-btn" data-mode="ai">🤖 AI Student</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Teacher Panel -->
+            <div class="teacher-panel">
+                <div class="teacher-header">
+                    <div class="teacher-avatar">🧠</div>
+                    <div class="teacher-info">
+                        <h2>AI Teacher</h2>
+                        <p>Adaptive Teaching Assistant</p>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-title">Teaching Analytics</div>
+                    <div id="teacherStats" class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="questionsAsked">0</div>
+                            <div class="stat-label">Questions</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="teachingScore">0.0</div>
+                            <div class="stat-label">Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="accuracy">N/A</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-section">
+                    <div class="progress-title">Teacher Actions</div>
+                    <div id="teacherMessages" class="chat-messages"></div>
+                </div>
+            </div>
+
+            <!-- Student Panel -->
+            <div class="student-panel">
+                <div class="student-header">
+                    <div class="student-avatar" id="studentAvatar">👤</div>
+                    <div class="student-info">
+                        <h2 id="studentTitle">You (Human Student)</h2>
+                        <p id="studentSubtitle">Learning Basic Math</p>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-title">Learning Progress</div>
+                    <div id="studentProgress">
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Single Digit Addition</span>
+                                <span id="singleDigitPercent">30%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="singleDigitProgress" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Double Digit Addition</span>
+                                <span id="doubleDigitPercent">15%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="doubleDigitProgress" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Addition with Carrying</span>
+                                <span id="carryingPercent">10%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="carryingProgress" style="width: 10%"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span>Word Problems</span>
+                                <span id="wordProblemsPercent">5%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="wordProblemsProgress" style="width: 5%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Knowledge Panel (shown only in AI mode) -->
+                <div class="ai-knowledge" id="aiKnowledge" style="display: none;">
+                    <div class="progress-title">AI Student Knowledge</div>
+                    <div class="knowledge-grid" id="knowledgeGrid"></div>
+                </div>
+
+                <div class="chat-section">
+                    <div class="progress-title">Student Responses</div>
+                    <div id="studentMessages" class="chat-messages"></div>
+                    
+                    <!-- Interactive Input (shown only in human mode) -->
+                    <div class="student-input" id="studentInputSection">
+                        <div class="input-group">
+                            <input type="text" id="studentAnswerInput" class="student-answer-input" placeholder="Type your answer here..." disabled>
+                            <button id="submitAnswerBtn" class="submit-btn" disabled>Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="button" id="startBtn">Start Teaching Session</button>
+            <button class="button" id="nextQuestionBtn" disabled>Next Question</button>
+            <button class="button" id="resetBtn">Reset Session</button>
+        </div>
+    </div>
+
+    <script>
+        class ExamCraftDemo {
+            constructor() {
+                this.mode = 'human'; // 'human' or 'ai'
+                this.currentQuestion = null;
+                this.questionsAsked = 0;
+                this.correctAnswers = 0;
+                this.totalScore = 0;
+                this.sessionActive = false;
+                this.waitingForAnswer = false;
+
+                // Student proficiency levels
+                this.studentProficiency = {
+                    single_digit: 0.30,
+                    double_digit: 0.15,
+                    carrying: 0.10,
+                    word_problems: 0.05
+                };
+
+                // AI Student Knowledge Base
+                this.aiKnowledge = {
+                    'addition_facts': { learned: false, confidence: 0.0 },
+                    'carrying_concept': { learned: false, confidence: 0.0 },
+                    'place_value': { learned: false, confidence: 0.0 },
+                    'word_interpretation': { learned: false, confidence: 0.0 },
+                    'number_recognition': { learned: true, confidence: 0.8 },
+                    'basic_counting': { learned: true, confidence: 0.9 }
+                };
+
+                // Question templates
+                this.questionTemplates = {
+                    single_digit: {
+                        easy: [
+                            { question: "What is 2 + 3?", answer: "5", explanation: "Count: 2, 3, 4, 5. So 2 + 3 = 5" },
+                            { question: "What is 1 + 4?", answer: "5", explanation: "Start at 1: 2, 3, 4, 5. So 1 + 4 = 5" },
+                            { question: "What is 3 + 2?", answer: "5", explanation: "3 + 2 means adding 2 more to 3: 4, 5" }
+                        ],
+                        medium: [
+                            { question: "What is 7 + 6?", answer: "13", explanation: "7 + 6 = 13. Think: 7 + 3 = 10, then add 3 more" },
+                            { question: "What is 8 + 5?", answer: "13", explanation: "8 + 5 = 13. You can count: 9, 10, 11, 12, 13" }
+                        ],
+                        hard: [
+                            { question: "What is 9 + 8?", answer: "17", explanation: "9 + 8 = 17. Think: 9 + 1 = 10, then add 7 more" }
+                        ]
+                    },
+                    double_digit: {
+                        easy: [
+                            { question: "What is 10 + 20?", answer: "30", explanation: "10 + 20 = 30. Add the tens: 1 + 2 = 3 tens" },
+                            { question: "What is 15 + 12?", answer: "27", explanation: "15 + 12 = 27. Add ones: 5 + 2 = 7, add tens: 1 + 1 = 2" }
+                        ],
+                        medium: [
+                            { question: "What is 23 + 34?", answer: "57", explanation: "23 + 34 = 57. Ones: 3 + 4 = 7, Tens: 2 + 3 = 5" },
+                            { question: "What is 42 + 25?", answer: "67", explanation: "42 + 25 = 67. Add ones: 2 + 5 = 7, tens: 4 + 2 = 6" }
+                        ],
+                        hard: [
+                            { question: "What is 56 + 38?", answer: "94", explanation: "56 + 38 = 94. Ones: 6 + 8 = 14 (carry 1), Tens: 5 + 3 + 1 = 9" }
+                        ]
+                    },
+                    carrying: {
+                        easy: [
+                            { question: "What is 15 + 17?", answer: "32", explanation: "15 + 17 = 32. Ones: 5 + 7 = 12 (write 2, carry 1), Tens: 1 + 1 + 1 = 3" }
+                        ],
+                        medium: [
+                            { question: "What is 29 + 36?", answer: "65", explanation: "29 + 36 = 65. Ones: 9 + 6 = 15 (write 5, carry 1), Tens: 2 + 3 + 1 = 6" }
+                        ],
+                        hard: [
+                            { question: "What is 147 + 286?", answer: "433", explanation: "Ones: 7+6=13 (carry 1), Tens: 4+8+1=13 (carry 1), Hundreds: 1+2+1=4" }
+                        ]
+                    },
+                    word_problems: {
+                        easy: [
+                            { question: "Sarah has 5 apples. Her friend gives her 3 more. How many apples does she have now?", answer: "8", explanation: "5 apples + 3 more apples = 8 apples total" }
+                        ],
+                        medium: [
+                            { question: "There are 12 birds in a tree. 7 more birds join them. How many birds are in the tree now?", answer: "19", explanation: "12 birds + 7 more birds = 19 birds total" }
+                        ],
+                        hard: [
+                            { question: "A store sold 45 books on Monday and 38 books on Tuesday. How many books did they sell in total?", answer: "83", explanation: "45 books + 38 books = 83 books total" }
+                        ]
+                    }
+                };
+
+                this.initEventListeners();
+                this.updateDisplay();
+                this.updateAIKnowledge();
+            }
+
+            initEventListeners() {
+                // Mode selection
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.switchMode(btn.dataset.mode));
+                });
+
+                // Control buttons
+                document.getElementById('startBtn').addEventListener('click', () => this.startSession());
+                document.getElementById('nextQuestionBtn').addEventListener('click', () => this.generateQuestion());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetSession());
+
+                // Student input
+                document.getElementById('submitAnswerBtn').addEventListener('click', () => this.submitHumanAnswer());
+                document.getElementById('studentAnswerInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.submitHumanAnswer();
+                });
+            }
+
+            switchMode(newMode) {
+                this.mode = newMode;
+
+                // Update mode buttons
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mode === newMode);
+                });
+
+                // Update UI based on mode
+                const studentAvatar = document.getElementById('studentAvatar');
+                const studentTitle = document.getElementById('studentTitle');
+                const studentSubtitle = document.getElementById('studentSubtitle');
+                const studentInputSection = document.getElementById('studentInputSection');
+                const aiKnowledge = document.getElementById('aiKnowledge');
+
+                if (newMode === 'human') {
+                    studentAvatar.textContent = '👤';
+                    studentTitle.textContent = 'You (Human Student)';
+                    studentSubtitle.textContent = 'Learning Basic Math';
+                    studentInputSection.style.display = 'block';
+                    aiKnowledge.style.display = 'none';
+                } else {
+                    studentAvatar.textContent = '🤖';
+                    studentTitle.textContent = 'AI Student';
+                    studentSubtitle.textContent = 'Learning Agent';
+                    studentInputSection.style.display = 'none';
+                    aiKnowledge.style.display = 'block';
+                }
+
+                this.resetSession();
+            }
+
+            startSession() {
+                this.sessionActive = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('nextQuestionBtn').disabled = false;
+                
+                this.addTeacherMessage("🚀 Teaching session started! Analyzing student profile...", "system");
+                
+                if (this.mode === 'human') {
+                    this.addStudentMessage("Hi! I'm ready to learn math! 😊", "status");
+                } else {
+                    this.addStudentMessage("AI Student initialized. Ready to learn addition concepts.", "status");
+                }
+                
+                setTimeout(() => this.generateQuestion(), 1000);
+            }
+
+            generateQuestion() {
+                const targetTopic = this.getWeakestTopic();
+                const difficulty = this.selectDifficulty(targetTopic);
+                const proficiency = this.studentProficiency[targetTopic];
+
+                // Show teacher analysis
+                this.addTeacherMessage(
+                    `🎯 Analysis: Targeting ${targetTopic.replace('_', ' ')} (${Math.round(proficiency * 100)}% proficiency)\n📝 Generating ${difficulty} question...`,
+                    "analysis"
+                );
+
+                // Get question from templates
+                const topicQuestions = this.questionTemplates[targetTopic];
+                const difficultyQuestions = topicQuestions[difficulty] || topicQuestions['easy'];
+                const questionData = difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
+
+                // Store current question
+                this.currentQuestion = {
+                    ...questionData,
+                    topic: targetTopic,
+                    difficulty: difficulty
+                };
+
+                // Display question
+                setTimeout(() => {
+                    let questionHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <strong>Topic:</strong> ${targetTopic.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}<br>
+                            <strong>Difficulty:</strong> ${difficulty.toUpperCase()}<br><br>
+                            <strong>Question:</strong> ${questionData.question}
+                        </div>
+                    `;
+
+                    this.addTeacherMessage(questionHTML, "question");
+
+                    // Enable input for human mode
+                    if (this.mode === 'human') {
+                        this.waitingForAnswer = true;
+                        document.getElementById('studentAnswerInput').disabled = false;
+                        document.getElementById('submitAnswerBtn').disabled = false;
+                        document.getElementById('studentAnswerInput').focus();
+                    } else {
+                        // AI student answers automatically
+                        setTimeout(() => this.generateAIAnswer(), 2000);
+                    }
+                }, 500);
+            }
+
+            submitHumanAnswer() {
+                if (!this.waitingForAnswer) return;
+
+                const answerInput = document.getElementById('studentAnswerInput');
+                const answer = answerInput.value.trim();
+
+                if (!answer) return;
+
+                // Disable input
+                this.waitingForAnswer = false;
+                answerInput.disabled = true;
+                document.getElementById('submitAnswerBtn').disabled = true;
+
+                // Process answer
+                this.processAnswer(answer);
+
+                // Clear input
+                answerInput.value = '';
+            }
+
+            generateAIAnswer() {
+                // AI student uses its knowledge to answer
+                const topic = this.currentQuestion.topic;
+                const difficulty = this.currentQuestion.difficulty;
+                
+                // Calculate AI success probability based on knowledge
+                let successProb = 0.1; // Base probability
+
+                // Check relevant knowledge
+                if (topic === 'single_digit' && this.aiKnowledge.addition_facts.learned) {
+                    successProb += this.aiKnowledge.addition_facts.confidence;
+                }
+                if (topic === 'carrying' && this.aiKnowledge.carrying_concept.learned) {
+                    successProb += this.aiKnowledge.carrying_concept.confidence;
+                }
+                if (topic === 'word_problems' && this.aiKnowledge.word_interpretation.learned) {
+                    successProb += this.aiKnowledge.word_interpretation.confidence;
+                }
+
+                // Difficulty adjustment
+                const difficultyMultipliers = { easy: 1.2, medium: 1.0, hard: 0.8 };
+                successProb *= difficultyMultipliers[difficulty];
+
+                // Generate answer with some realistic variation
+                const isCorrect = Math.random() < Math.min(0.9, successProb);
+                
+                let answer;
+                if (isCorrect) {
+                    answer = this.currentQuestion.answer;
+                } else {
+                    // Generate a plausible wrong answer
+                    const correctAnswer = parseInt(this.currentQuestion.answer) || 0;
+                    const variations = [-1, 1, -2, 2, -10, 10];
+                    const wrongAnswer = correctAnswer + variations[Math.floor(Math.random() * variations.length)];
+                    answer = Math.max(0, wrongAnswer).toString();
+                }
+
+                // Display AI thinking process
+                this.addStudentMessage(
+                    `🤔 Let me think... I'll use what I know about ${topic.replace('_', ' ')}.\nMy answer is: ${answer}`,
+                    "answer"
+                );
+
+                // Process the answer
+                this.processAnswer(answer);
+            }
+
+            processAnswer(answer) {
+                const isCorrect = answer.toLowerCase() === this.currentQuestion.answer.toLowerCase();
+                this.questionsAsked++;
+                if (isCorrect) this.correctAnswers++;
+
+                // Update student learning
+                this.updateStudentLearning(this.currentQuestion.topic, isCorrect);
+
+                // Update AI knowledge if in AI mode
+                if (this.mode === 'ai') {
+                    this.updateAIKnowledge(this.currentQuestion.topic, isCorrect);
+                }
+
+                // Teacher feedback
+                setTimeout(() => {
+                    let feedbackMessage = `${isCorrect ? '✅ Excellent work!' : '❌ Not quite right, but good try!'}\n\n`;
+                    feedbackMessage += `💡 Explanation: ${this.currentQuestion.explanation}`;
+                    
+                    if (!isCorrect) {
+                        feedbackMessage += `\n\n🎯 The correct answer was: ${this.currentQuestion.answer}`;
+                    }
+
+                    this.addTeacherMessage(feedbackMessage, "explanation");
+
+                    // Calculate and display score
+                    const score = this.calculateQuestionScore(isCorrect);
+                    this.totalScore += score;
+
+                    setTimeout(() => {
+                        this.addTeacherMessage(
+                            `📊 Teaching effectiveness score: ${score.toFixed(2)}\n📈 Total session score: ${this.totalScore.toFixed(2)}`,
+                            "score"
+                        );
+                        this.updateDisplay();
+                    }, 1000);
+
+                }, 1000);
+            }
+
+            updateAIKnowledge(topic, isCorrect) {
+                // Update AI knowledge based on the question type and result
+                const learningRate = 0.1;
+                
+                if (topic === 'single_digit') {
+                    if (isCorrect) {
+                        this.aiKnowledge.addition_facts.confidence = Math.min(1.0, 
+                            this.aiKnowledge.addition_facts.confidence + learningRate);
+                        if (this.aiKnowledge.addition_facts.confidence > 0.7) {
+                            this.aiKnowledge.addition_facts.learned = true;
+                        }
+                    }
+                } else if (topic === 'carrying') {
+                    if (isCorrect) {
+                        this.aiKnowledge.carrying_concept.confidence = Math.min(1.0,
+                            this.aiKnowledge.carrying_concept.confidence + learningRate);
+                        if (this.aiKnowledge.carrying_concept.confidence > 0.6) {
+                            this.aiKnowledge.carrying_concept.learned = true;
+                        }
+                    }
+                } else if (topic === 'word_problems') {
+                    if (isCorrect) {
+                        this.aiKnowledge.word_interpretation.confidence = Math.min(1.0,
+                            this.aiKnowledge.word_interpretation.confidence + learningRate);
+                        if (this.aiKnowledge.word_interpretation.confidence > 0.5) {
+                            this.aiKnowledge.word_interpretation.learned = true;
+                        }
+                    }
+                }
+
+                // Update place value understanding for multi-digit problems
+                if ((topic === 'double_digit' || topic === 'carrying') && isCorrect) {
+                    this.aiKnowledge.place_value.confidence = Math.min(1.0,
+                        this.aiKnowledge.place_value.confidence + learningRate * 0.5);
+                    if (this.aiKnowledge.place_value.confidence > 0.6) {
+                        this.aiKnowledge.place_value.learned = true;
+                    }
+                }
+
+                // Update knowledge display
+                this.displayAIKnowledge();
+            }
+
+            displayAIKnowledge() {
+                const knowledgeGrid = document.getElementById('knowledgeGrid');
+                knowledgeGrid.innerHTML = '';
+
+                for (const [concept, data] of Object.entries(this.aiKnowledge)) {
+                    const item = document.createElement('div');
+                    item.className = 'knowledge-item';
+                    
+                    if (data.learned) {
+                        item.classList.add('learned');
+                    } else if (data.confidence > 0.1) {
+                        item.classList.add('learning');
+                    }
+
+                    const conceptName = concept.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const confidence = Math.round(data.confidence * 100);
+                    
+                    item.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 5px;">${conceptName}</div>
+                        <div style="font-size: 0.8em;">Confidence: ${confidence}%</div>
+                        <div style="font-size: 0.7em;">${data.learned ? '✅ Learned' : '🔄 Learning'}</div>
+                    `;
+
+                    knowledgeGrid.appendChild(item);
+                }
+            }
+
+            getWeakestTopic() {
+                let weakest = 'single_digit';
+                let lowest = this.studentProficiency.single_digit;
+                
+                for (const [topic, proficiency] of Object.entries(this.studentProficiency)) {
+                    if (proficiency < lowest) {
+                        lowest = proficiency;
+                        weakest = topic;
+                    }
+                }
+                
+                return weakest;
+            }
+
+            selectDifficulty(topic) {
+                const proficiency = this.studentProficiency[topic];
+                if (proficiency < 0.3) return 'easy';
+                if (proficiency < 0.6) return 'medium';
+                return 'hard';
+            }
+
+            calculateQuestionScore(isCorrect) {
+                const topic = this.currentQuestion.topic;
+                const difficulty = this.currentQuestion.difficulty;
+                const proficiency = this.studentProficiency[topic];
+
+                // Base score
+                let score = isCorrect ? 1.5 : -0.2;
+
+                // Bonus for targeting weak topics
+                const weaknessBonus = (1.0 - proficiency) * 0.8;
+
+                // Bonus for appropriate difficulty
+                const difficultyValues = { easy: 0.3, medium: 0.6, hard: 0.9 };
+                const targetDifficulty = difficultyValues[difficulty];
+                const difficultyMatch = 1.0 - Math.abs(targetDifficulty - proficiency) * 2;
+                const difficultyBonus = Math.max(0, difficultyMatch) * 0.5;
+
+                return score + weaknessBonus + difficultyBonus;
+            }
+
+            updateStudentLearning(topic, isCorrect) {
+                const currentProf = this.studentProficiency[topic];
+                const improvement = isCorrect ? 0.08 : 0.03; // Humans learn more from success
+                const diminishingFactor = (1.0 - currentProf) * 0.8 + 0.2;
+                
+                this.studentProficiency[topic] = Math.min(1.0, currentProf + improvement * diminishingFactor);
+            }
+
+            updateDisplay() {
+                // Update student progress bars
+                const topicMappings = {
+                    single_digit: 'singleDigit',
+                    double_digit: 'doubleDigit',
+                    carrying: 'carrying',
+                    word_problems: 'wordProblems'
+                };
+
+                for (const [topic, proficiency] of Object.entries(this.studentProficiency)) {
+                    const percentage = Math.round(proficiency * 100);
+                    const mappedTopic = topicMappings[topic];
+                    
+                    if (mappedTopic) {
+                        document.getElementById(`${mappedTopic}Percent`).textContent = `${percentage}%`;
+                        document.getElementById(`${mappedTopic}Progress`).style.width = `${percentage}%`;
+                    }
+                }
+
+                // Update teacher stats
+                document.getElementById('questionsAsked').textContent = this.questionsAsked;
+                document.getElementById('teachingScore').textContent = this.totalScore.toFixed(1);
+                
+                const accuracy = this.questionsAsked > 0 ? 
+                    Math.round((this.correctAnswers / this.questionsAsked) * 100) + '%' : 'N/A';
+                document.getElementById('accuracy').textContent = accuracy;
+            }
+
+            addTeacherMessage(content, type) {
+                const messagesDiv = document.getElementById('teacherMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message teacher-message';
+                
+                let header = '';
+                switch(type) {
+                    case 'analysis': header = '🧠 AI Analysis'; break;
+                    case 'question': header = '📝 Generated Question'; break;
+                    case 'explanation': header = '💡 Teaching Explanation'; break;
+                    case 'score': header = '📊 Performance Score'; break;
+                    default: header = '🧠 Teacher'; break;
+                }
+
+                messageDiv.innerHTML = `
+                    <div class="message-header">${header}</div>
+                    <div class="message-content">${content}</div>
+                `;
+
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            addStudentMessage(content, type) {
+                const messagesDiv = document.getElementById('studentMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message student-message';
+                
+                let header = '';
+                if (this.mode === 'human') {
+                    switch(type) {
+                        case 'answer': header = '✏️ Your Answer'; break;
+                        case 'status': header = '📚 Your Status'; break;
+                        default: header = '👤 You'; break;
+                    }
+                } else {
+                    switch(type) {
+                        case 'answer': header = '🤖 AI Answer'; break;
+                        case 'status': header = '🔧 AI Status'; break;
+                        default: header = '🤖 AI Student'; break;
+                    }
+                }
+
+                messageDiv.innerHTML = `
+                    <div class="message-header">${header}</div>
+                    <div class="message-content">${content}</div>
+                `;
+
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            resetSession() {
+                this.studentProficiency = {
+                    single_digit: 0.30,
+                    double_digit: 0.15,
+                    carrying: 0.10,
+                    word_problems: 0.05
+                };
+
+                this.aiKnowledge = {
+                    'addition_facts': { learned: false, confidence: 0.0 },
+                    'carrying_concept': { learned: false, confidence: 0.0 },
+                    'place_value': { learned: false, confidence: 0.0 },
+                    'word_interpretation': { learned: false, confidence: 0.0 },
+                    'number_recognition': { learned: true, confidence: 0.8 },
+                    'basic_counting': { learned: true, confidence: 0.9 }
+                };
+
+                this.currentQuestion = null;
+                this.questionsAsked = 0;
+                this.correctAnswers = 0;
+                this.totalScore = 0;
+                this.sessionActive = false;
+                this.waitingForAnswer = false;
+
+                document.getElementById('teacherMessages').innerHTML = '';
+                document.getElementById('studentMessages').innerHTML = '';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('nextQuestionBtn').disabled = true;
+                document.getElementById('studentAnswerInput').disabled = true;
+                document.getElementById('submitAnswerBtn').disabled = true;
+
+                this.updateDisplay();
+                this.displayAIKnowledge();
+            }
+        }
+
+        // Initialize the demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.examCraftDemo = new ExamCraftDemo();
+        });
+    </script>
+</body>
+</html>
